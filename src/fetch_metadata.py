@@ -6,7 +6,7 @@ import datetime
 import json
 
 # Load credentials
-with open('bluesky_scraper/config/credentials.json', 'r') as file:
+with open('config/credentials.json', 'r') as file:
     credentials = json.load(file)
 
 USERNAME = credentials["username"]
