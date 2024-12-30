@@ -18,5 +18,5 @@ This script fetches metadata about posts and authors from the Bluesky platform b
    ```bash
    pip install -r requirements.txt
 
-3. Add your credentials
-4. Run script ```fetch_metadata.py```
+3. Add your credentials ```config/credentials.json```
+4. Run script ```scr/fetch_metadata.py```
