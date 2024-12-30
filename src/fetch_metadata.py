@@ -9,11 +9,11 @@ import json
 with open('config/credentials.json', 'r') as file:
     credentials = json.load(file)
 
-USERNAME = credentials["username"]
-PASSWORD = credentials["password"]
+username = credentials["username"]
+password = credentials["password"]
 
 # Define keywords and date range
-KEYWORDS = [
+keywords = [
     '#election2024', '#uselections', '#election', '#elections', '#uspolitics', '#uspol',
     '#congress', '#usdemocracy', '#swingstates', '#bidenharris', '#bidensuccess', '#biden',
     '#republicanparty', '#gop', '#proudblue', '#democrat', '#bluecrew', '#teamblue',
@@ -27,25 +27,25 @@ KEYWORDS = [
     'maga', 'i voted', 'swing state', 'swing states'
 ]
 
-START_DATE = datetime.date(2023, 12, 1)
-END_DATE = datetime.date(2023, 12, 31)
+startDate = datetime.date(2024, 1, 1)
+endDate = datetime.date(2024, 1, 31)
 
 # Initialize the ATProto client and authenticate
 client = atproto.Client()
-client.login(USERNAME, PASSWORD)
+client.login(username, password)
 
 # List to store all metadata
 data = []
 
 # Loop through each keyword
-for keyword in KEYWORDS:
-    current_date = START_DATE
+for keyword in keywords:
+    currentDate = startDate
 
     # Loop day by day
-    while current_date <= END_DATE:
-        next_day = current_date + datetime.timedelta(days=1)
-        since = current_date.strftime("%Y-%m-%dT00:00:00Z")
-        until = next_day.strftime("%Y-%m-%dT00:00:00Z")
+    while currentDate <= endDate:
+        nextDay = currentDate + datetime.timedelta(days=1)
+        since = currentDate.strftime("%Y-%m-%dT00:00:00Z")
+        until = nextDay.strftime("%Y-%m-%dT00:00:00Z")
 
         cursor = None
         while True:
@@ -62,39 +62,39 @@ for keyword in KEYWORDS:
 
                 for post in fetched.posts:
                     if hasattr(post.record, 'langs') and 'en' in post.record.langs:
-                        author_handle = post.author.handle if hasattr(post.author, 'handle') else ""
-                        profile_data = {}
+                        authorHandle = post.author.handle if hasattr(post.author, 'handle') else ""
+                        profileData = {}
 
                         # Fetch additional profile data
                         try:
-                            if author_handle:
-                                profile = client.app.bsky.actor.get_profile({'actor': author_handle})
-                                profile_data = {
+                            if authorHandle:
+                                profile = client.app.bsky.actor.get_profile({'actor': authorHandle})
+                                profileData = {
                                     "description": profile.description if hasattr(profile, 'description') else "",
-                                    "followers_count": profile.followers_count if hasattr(profile, 'followers_count') else 0,
-                                    "following_count": profile.follows_count if hasattr(profile, 'follows_count') else 0,
-                                    "posts_count": profile.posts_count if hasattr(profile, 'posts_count') else 0
+                                    "followersCount": profile.followers_count if hasattr(profile, 'followers_count') else 0,
+                                    "followingCount": profile.follows_count if hasattr(profile, 'follows_count') else 0,
+                                    "postsCount": profile.posts_count if hasattr(profile, 'posts_count') else 0
                                 }
                         except Exception as e:
-                            print(f"Error fetching profile for {author_handle}: {e}")
+                            print(f"Error fetching profile for {authorHandle}: {e}")
 
                         # Append data to the list
                         data.append({
                             "keyword": keyword,
-                            "author": author_handle,
+                            "author": authorHandle,
                             "avatar": post.author.avatar if hasattr(post.author, 'avatar') else "",
-                            "display_name": post.author.display_name if hasattr(post.author, 'display_name') else "",
-                            "description": profile_data.get("description", ""),
-                            "followers_count": profile_data.get("followers_count", 0),
-                            "following_count": profile_data.get("following_count", 0),
-                            "posts_count": profile_data.get("posts_count", 0),
-                            "created_at": post.record.created_at if hasattr(post.record, 'created_at') else "",
+                            "displayName": post.author.display_name if hasattr(post.author, 'display_name') else "",
+                            "description": profileData.get("description", ""),
+                            "followersCount": profileData.get("followersCount", 0),
+                            "followingCount": profileData.get("followingCount", 0),
+                            "postsCount": profileData.get("postsCount", 0),
+                            "createdAt": post.record.created_at if hasattr(post.record, 'created_at') else "",
                             "text": post.record.text if hasattr(post.record, 'text') else "",
                             "uri": post.uri if hasattr(post, 'uri') else "",
-                            "like_count": post.like_count if hasattr(post, 'like_count') else 0,
-                            "quote_count": post.quote_count if hasattr(post, 'quote_count') else 0,
-                            "reply_count": post.reply_count if hasattr(post, 'reply_count') else 0,
-                            "repost_count": post.repost_count if hasattr(post, 'repost_count') else 0
+                            "likeCount": post.like_count if hasattr(post, 'like_count') else 0,
+                            "quoteCount": post.quote_count if hasattr(post, 'quote_count') else 0,
+                            "replyCount": post.reply_count if hasattr(post, 'reply_count') else 0,
+                            "repostCount": post.repost_count if hasattr(post, 'repost_count') else 0
                         })
 
                 if not fetched.cursor:
@@ -108,7 +108,7 @@ for keyword in KEYWORDS:
                 print(f"Error fetching data for {keyword} in {since} to {until}: {e}")
                 break
 
-        current_date = next_day
+        currentDate = nextDay
 
 # Save to CSV
 output_file = "../data/output/us_election_11_23.csv"
