@@ -1,4 +1,4 @@
-# Bluesky scraper
+# bluesky scraper
 
 This script fetches metadata about posts and authors from the Bluesky platform based on specified keywords and date range.
 
