@@ -4,6 +4,7 @@ import atproto
 import pandas as pd
 import datetime
 import json
+import time
 
 # Load credentials
 with open('config/credentials.json', 'r') as file:
@@ -65,9 +66,9 @@ for keyword in keywords:
                         authorHandle = post.author.handle if hasattr(post.author, 'handle') else ""
                         profileData = {}
 
-                        # Fetch additional profile data
-                        try:
-                            if authorHandle:
+                        # Fetch additional profile data only if not already fetched
+                        if authorHandle and authorHandle not in fetchedProfiles:
+                            try:
                                 profile = client.app.bsky.actor.get_profile({'actor': authorHandle})
                                 profileData = {
                                     "description": profile.description if hasattr(profile, 'description') else "",
@@ -75,8 +76,9 @@ for keyword in keywords:
                                     "followingCount": profile.follows_count if hasattr(profile, 'follows_count') else 0,
                                     "postsCount": profile.posts_count if hasattr(profile, 'posts_count') else 0
                                 }
-                        except Exception as e:
-                            print(f"Error fetching profile for {authorHandle}: {e}")
+                                fetchedProfiles.add(authorHandle)  # Add to fetched profiles set
+                            except Exception as e:
+                                print(f"Error fetching profile for {authorHandle}: {e}")
 
                         # Append data to the list
                         data.append({
@@ -106,6 +108,15 @@ for keyword in keywords:
                 if "NoneType" in str(e):
                     break
                 print(f"Error fetching data for {keyword} in {since} to {until}: {e}")
+
+                # Check rate limit headers and pause if necessary
+                if hasattr(e, 'response') and e.response.headers:
+                    rateLimitRemaining = int(e.response.headers.get('ratelimit-remaining', 0))
+                    if rateLimitRemaining <= 10:
+                        resetTime = int(e.response.headers.get('ratelimit-reset', time.time()))
+                        waitTime = resetTime - int(time.time())
+                        print(f"Rate limit reached. Waiting for {waitTime} seconds.")
+                        time.sleep(waitTime)
                 break
 
         currentDate = nextDay
